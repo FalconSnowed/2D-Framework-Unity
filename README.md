@@ -18,6 +18,7 @@ Welcome to the **Eldora Framework**, a modular RPG and quantum-inspired simulati
 * 🧩 Modular interaction system with triggers
 
 ---
+![image](https://github.com/user-attachments/assets/40a1b23f-9e6a-46c4-9e27-5acd4dd6b76f)
 
 ## 📁 Project Structure
 
