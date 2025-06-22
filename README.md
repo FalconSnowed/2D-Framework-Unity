@@ -1,4 +1,4 @@
-# 🌌 Eldora Framework – RPG & Simulation System (Unity + Fusion)
+# 🌌 2D RPG Framework – RPG & Simulation System (Unity + Fusion)
 
 Welcome to the **2D RPG Framework**, a modular RPG and quantum-inspired simulation toolkit built in Unity using **Photon Fusion**. It blends classic RPG mechanics with modern multiplayer networking, immersive UI, dynamic visuals, and deep narrative systems. This project includes over **55 modular C# scripts** and is tailored for top-down 2D and hybrid environments with fantasy/quantum themes.
 
