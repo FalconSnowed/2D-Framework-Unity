@@ -148,6 +148,5 @@ MIT License — Free to use and adapt for personal or commercial projects with a
 
 Follow development & updates:
 
-* 🎮 GitHub: \[Your GitHub URL here]
-* 🧠 Twitter/X: \[@YourHandle]
-* 🎵 SoundCloud: \[Link to OST or Soundtracks]
+* 🎮 GitHub: https://github.com/FalconSnowed
+* 🧠 Twitter/X: https://x.com/FalconSnowed
