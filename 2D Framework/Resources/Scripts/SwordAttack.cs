@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using UnityEngine;
 using Fusion;
+using static Enemy;
 
 [RequireComponent(typeof(NetworkObject))]
 public class SwordAttack : NetworkBehaviour
@@ -70,13 +71,9 @@ public class SwordAttack : NetworkBehaviour
 
         if (isAttacking)
         {
-            if (other.CompareTag("Enemy") && other.TryGetComponent(out Enemy enemy))
+            if (other.TryGetComponent(out IDamageable damageable))
             {
-                enemy.TakeDamage(damage);
-            }
-            else if (other.CompareTag("Player") && other.TryGetComponent(out PlayerNetworkController2D player))
-            {
-                player.TakeDamage((int)damage);
+                damageable.TakeDamage((int)damage);
             }
         }
     }

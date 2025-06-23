@@ -2,10 +2,9 @@
 using Fusion;
 using System.Collections;
 using UnityEngine.UI;
-using static Enemy;
 
 [RequireComponent(typeof(Rigidbody2D), typeof(NetworkTransform))]
-public class Enemy : NetworkBehaviour, IDamageable
+public class EnemyBOSS : NetworkBehaviour, IDamageable
 {
     [Header("Stats")]
     public float moveSpeed = 3f;
@@ -14,15 +13,18 @@ public class Enemy : NetworkBehaviour, IDamageable
     public float sightRange = 10f;
     public float separationRadius = 1.5f;
     public Slider healthSlider;
+
     [Header("Audio")]
     public AudioClip attackSound;
     public AudioClip deathSound;
     public AudioSource audioSource;
+
     [Header("Attack Collider")]
     public Collider2D attackCollider;
     public float attackEnableTime = 0.2f;
-    [Networked, OnChangedRender(nameof(OnFlipChanged))]
-    private NetworkBool IsFlipped { get; set; }
+
+    [Networked, OnChangedRender(nameof(OnFlipChanged))] private NetworkBool IsFlipped { get; set; }
+    [Networked, OnChangedRender(nameof(OnAttack))] public NetworkBool IsAttacking { get; set; }
 
     [Header("Combat")]
     public float baseDamage = 8f;
@@ -36,22 +38,16 @@ public class Enemy : NetworkBehaviour, IDamageable
 
     [Networked] public float Health { get; set; }
     [Networked] public NetworkBool IsDead { get; set; }
-    [Networked, OnChangedRender(nameof(OnAttack))]
-    public NetworkBool IsAttacking { get; set; }
 
     private Transform player;
     private Rigidbody2D rb;
     private Animator animator;
     private SpriteRenderer spriteRenderer;
-
-    private bool isAttacking = false;
     private Vector2 moveDirection;
     private float attackTimer = 0f;
     private float idleCooldown = 0f;
-    private void OnFlipChanged()
-    {
-        spriteRenderer.flipX = IsFlipped;
-    }
+
+    public EnemyDeathEvent deathEvent;
 
     public override void Spawned()
     {
@@ -59,37 +55,23 @@ public class Enemy : NetworkBehaviour, IDamageable
         animator = GetComponent<Animator>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         audioSource = GetComponent<AudioSource>();
+        deathEvent = GetComponent<EnemyDeathEvent>();
+
         if (attackCollider != null)
         {
             attackCollider.enabled = false;
             attackCollider.isTrigger = true;
         }
-        deathEvent = GetComponent<EnemyDeathEvent>();
 
         if (HasStateAuthority)
         {
             Health = 50f;
         }
     }
-    private Transform FindClosestPlayer()
+
+    private void OnFlipChanged()
     {
-        Transform closest = null;
-        float minDist = Mathf.Infinity;
-
-        foreach (var playerRef in Runner.ActivePlayers)
-        {
-            if (Runner.TryGetPlayerObject(playerRef, out var netObj))
-            {
-                float dist = Vector2.Distance(transform.position, netObj.transform.position);
-                if (dist < minDist)
-                {
-                    minDist = dist;
-                    closest = netObj.transform;
-                }
-            }
-        }
-
-        return closest;
+        spriteRenderer.flipX = IsFlipped;
     }
 
     private void OnAttack()
@@ -97,10 +79,15 @@ public class Enemy : NetworkBehaviour, IDamageable
         if (IsAttacking)
         {
             animator.SetTrigger("Attack");
+
+            if (attackCollider != null)
+                attackCollider.enabled = true; // permet de "voir" le collider sur le client
+
             if (attackSound != null && audioSource != null)
                 audioSource.PlayOneShot(attackSound);
         }
     }
+
 
     public override void FixedUpdateNetwork()
     {
@@ -118,11 +105,7 @@ public class Enemy : NetworkBehaviour, IDamageable
             Vector2 desiredDirection = (direction + separation).normalized;
             float stopDistance = attackRange * 0.9f;
 
-            if (distance > stopDistance)
-                moveDirection = desiredDirection;
-            else
-                moveDirection = Vector2.zero;
-
+            moveDirection = (distance > stopDistance) ? desiredDirection : Vector2.zero;
 
             if (distance <= attackRange && attackTimer <= 0f)
             {
@@ -142,17 +125,18 @@ public class Enemy : NetworkBehaviour, IDamageable
         else if (Random.value < 0.005f)
             idleCooldown = Random.Range(1f, 2f);
 
-        // 🔁 Mise à jour de "Speed" dans l'Animator
         float currentSpeed = moveDirection.magnitude * moveSpeed;
         animator?.SetFloat("Speed", currentSpeed);
 
         if (moveDirection != Vector2.zero && !IsIdle())
         {
             rb.MovePosition(rb.position + moveDirection * moveSpeed * Runner.DeltaTime);
-            if (moveDirection.x != 0)
-                if (HasStateAuthority)
-                    IsFlipped = moveDirection.x < 0;
+            if (moveDirection.x != 0 && HasStateAuthority)
+                IsFlipped = moveDirection.x < 0;
         }
+
+        if (!IsAttacking) // auto-reset visuel
+            IsAttacking = false;
 
         UpdateHealthBar();
     }
@@ -164,24 +148,22 @@ public class Enemy : NetworkBehaviour, IDamageable
         IsAttacking = true;
         attackTimer = attackCooldown;
 
+        // laisse le collider actif 0.2s en réel
+        if (attackCollider != null)
+            attackCollider.enabled = true;
+
         yield return new WaitForSeconds(attackEnableTime);
 
         if (attackCollider != null)
-        {
-            attackCollider.enabled = true;
-            yield return new WaitForSeconds(attackEnableTime);
             attackCollider.enabled = false;
-        }
 
         yield return new WaitForSeconds(attackCooldown - attackEnableTime);
-        isAttacking = false;
+        IsAttacking = false;
     }
-
 
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!Object.HasStateAuthority || !IsAttacking) return;
-
 
         if (other.CompareTag("Player") && other.TryGetComponent(out NetworkObject netObj))
         {
@@ -191,6 +173,27 @@ public class Enemy : NetworkBehaviour, IDamageable
                 player.RPC_TakeDamage((int)dmg);
             }
         }
+    }
+
+    private Transform FindClosestPlayer()
+    {
+        Transform closest = null;
+        float minDist = Mathf.Infinity;
+
+        foreach (var playerRef in Runner.ActivePlayers)
+        {
+            if (Runner.TryGetPlayerObject(playerRef, out var netObj))
+            {
+                float dist = Vector2.Distance(transform.position, netObj.transform.position);
+                if (dist < minDist)
+                {
+                    minDist = dist;
+                    closest = netObj.transform;
+                }
+            }
+        }
+
+        return closest;
     }
 
     private Vector2 ComputeSeparation()
@@ -222,12 +225,10 @@ public class Enemy : NetworkBehaviour, IDamageable
     public void TakeDamage(int amount)
     {
         if (IsDead) return;
-
         Health -= amount;
         if (Health <= 0)
             Die();
     }
-
 
     private void Die()
     {
@@ -241,22 +242,18 @@ public class Enemy : NetworkBehaviour, IDamageable
 
         animator.SetTrigger("Defeated");
 
-        // 🔥 Déclenche le VFX / texte / tp
         if (deathEvent != null)
             deathEvent.TriggerDeath();
 
-        // ⏳ Si tu veux laisser le VFX visible avant disparition réseau
-        StartCoroutine(DelayedDespawn(3f)); // ← Laisse le temps au joueur de voir
+        StartCoroutine(DelayedDespawn(3f));
     }
-    private EnemyDeathEvent deathEvent;
+
     private IEnumerator DelayedDespawn(float delay)
     {
         yield return new WaitForSeconds(delay);
-
         if (Object != null && Object.IsValid)
             Runner.Despawn(Object);
     }
-
 
     private void UpdateHealthBar()
     {
@@ -272,5 +269,10 @@ public class Enemy : NetworkBehaviour, IDamageable
         Gizmos.DrawWireSphere(transform.position, sightRange);
         Gizmos.color = Color.cyan;
         Gizmos.DrawWireSphere(transform.position, separationRadius);
+    }
+
+    void IDamageable.TakeDamage(int dmg)
+    {
+        TakeDamage(dmg);
     }
 }

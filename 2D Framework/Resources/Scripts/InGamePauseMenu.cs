@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.SceneManagement;
+using Fusion;
 
 public class InGamePauseMenu : MonoBehaviour
 {
@@ -25,13 +26,22 @@ public class InGamePauseMenu : MonoBehaviour
         float x = (Screen.width - menuSize.x) / 2f;
         float y = (Screen.height - menuSize.y) / 2f;
 
-        player = GameObject.FindGameObjectWithTag("Player")?.GetComponent<PlayerController>();
+        // Récupère uniquement le joueur local (celui avec Input Authority)
+        foreach (var p in FindObjectsOfType<PlayerController>())
+        {
+            if (p.Object != null && p.HasInputAuthority)
+            {
+                player = p;
+                break;
+            }
+        }
+
         inventory = FindObjectOfType<InventoryGUI>();
         level = FindObjectOfType<LevelSystem>();
         itemDB = FindObjectOfType<ItemDatabase>();
         saveSystem = FindObjectOfType<SaveSystem>();
 
-        if (player != null && inventory != null && level != null && itemDB != null && saveSystem != null)
+        if (player && inventory && level && itemDB && saveSystem)
         {
             saveSystem.LoadGame(player, inventory, level, itemDB);
         }
@@ -43,10 +53,7 @@ public class InGamePauseMenu : MonoBehaviour
         Invoke(nameof(EndIntro), 8f);
     }
 
-    private void EndIntro()
-    {
-        introActive = false;
-    }
+    private void EndIntro() => introActive = false;
 
     private void Update()
     {
@@ -64,14 +71,12 @@ public class InGamePauseMenu : MonoBehaviour
 
     private void OnGUI()
     {
-        if (introActive || menuAlpha <= 0f) return;
+        if (introActive || menuAlpha <= 0f || player == null) return;
 
-        // ⛱️ Fond assombri
         GUI.color = new Color(0, 0, 0, 0.6f * menuAlpha);
         GUI.DrawTexture(new Rect(0, 0, Screen.width, Screen.height), Texture2D.whiteTexture);
         GUI.color = Color.white;
 
-        // 📦 Fenêtre principale
         Rect fullRect = new Rect((Screen.width - menuSize.x) / 2f, (Screen.height - menuSize.y) / 2f, menuSize.x, menuSize.y);
         GUIStyle menuBoxStyle = new GUIStyle(GUI.skin.box)
         {
@@ -83,7 +88,6 @@ public class InGamePauseMenu : MonoBehaviour
 
         GUI.Box(fullRect, "⏸ Eldora – Echo of Time", menuBoxStyle);
 
-        // 📋 Boutons
         float btnWidth = 280;
         float btnHeight = 45;
         float spacing = 14;
@@ -103,20 +107,6 @@ public class InGamePauseMenu : MonoBehaviour
             SceneManager.LoadScene("Game");
         }
 
-       // currentY += btnHeight + spacing;
-       // if (GUI.Button(new Rect(centerX, currentY, btnWidth, btnHeight), "▶ Charger la partie", buttonStyle))
-           // SceneManager.LoadScene("Game");
-
-       // currentY += btnHeight + spacing;
-      //  if (GUI.Button(new Rect(centerX, currentY, btnWidth, btnHeight), "💾 Sauvegarder", buttonStyle))
-      //  {
-      //      if (player && inventory && level && saveSystem)
-      //      {
-               // saveSystem.SaveGame(player, inventory, level);
-       //         Debug.Log("✅ Partie sauvegardée !");
-       //     }
-     //   }
-
         currentY += btnHeight + spacing;
         if (GUI.Button(new Rect(centerX, currentY, btnWidth, btnHeight), showOptions ? "▲ Masquer Options" : "⚙ Options", buttonStyle))
             showOptions = !showOptions;
@@ -129,7 +119,6 @@ public class InGamePauseMenu : MonoBehaviour
         if (GUI.Button(new Rect(centerX, currentY, btnWidth, btnHeight), "❌ Quitter le jeu", buttonStyle))
             Application.Quit();
 
-        // ⚙️ Options dynamiques
         if (showOptions)
         {
             Rect opt = new Rect(centerX, currentY + 30, btnWidth, 160);
@@ -147,7 +136,6 @@ public class InGamePauseMenu : MonoBehaviour
             }
         }
 
-        // ℹ️ Résumé joueur
         GUIStyle labelStyle = new GUIStyle(GUI.skin.label)
         {
             fontSize = 13,

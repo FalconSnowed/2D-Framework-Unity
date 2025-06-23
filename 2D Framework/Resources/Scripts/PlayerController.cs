@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Fusion;
+using UnityEngine.InputSystem;
 
 [RequireComponent(typeof(NetworkTransform), typeof(Rigidbody2D))]
 public class PlayerController : NetworkBehaviour
@@ -42,6 +43,7 @@ public class PlayerController : NetworkBehaviour
     [Networked] public float currentEndurance { get; set; }
     public float dashDuration = 0.5f;
     private bool isDashing = false;
+    private DefaultInputActions inputActions;
 
     public Slider healthSlider;
     public Slider manaSlider;
@@ -55,6 +57,7 @@ public class PlayerController : NetworkBehaviour
 
     public bool canMove = true;
     public new Camera camera;
+    private int amount;
 
     public override void Spawned()
     {
@@ -71,6 +74,11 @@ public class PlayerController : NetworkBehaviour
         if (Object.HasInputAuthority)
         {
             playerCamera.gameObject.SetActive(true);
+
+            inputActions = new DefaultInputActions();
+            inputActions.Enable();
+
+            inputActions.Player.Fire.performed += ctx => OnFireInput();
         }
         if (HasInputAuthority)
         {
@@ -99,15 +107,12 @@ public class PlayerController : NetworkBehaviour
         animator.SetBool("isMoving", movementInput != Vector2.zero);
         spriteRenderer.flipX = movementInput.x < 0;
 
-        if (Input.GetKeyDown(KeyCode.Space) && currentEndurance >= dashEnduranceCost)
+        if (GetInput(out NetworkInputData data))
         {
-           // Runner.StartCoroutine(DashFunction());
-        }
-
-        if (Input.GetMouseButtonDown(0)) // clic gauche
-        {
-            
-            SwordAttack();
+            if (data.attackPressed && Runner.IsForward)
+            {
+                IsAttacking = true; // synchronisé
+            }
         }
 
         RegenerateEndurance();
@@ -154,6 +159,11 @@ public class PlayerController : NetworkBehaviour
             UpdateEnduranceBar();
         }
     }
+    private void OnDisable()
+    {
+        if (inputActions != null)
+            inputActions.Disable();
+    }
 
     public void TakeDamage(int damage)
     {
@@ -168,12 +178,18 @@ public class PlayerController : NetworkBehaviour
         Runner.StartCoroutine(FlashRed());
         UpdateHealthBar();
 
+        currentHealth -= amount;
         if (currentHealth <= 0)
         {
             animator.SetTrigger("Death");
             canMove = false;
             Runner.Despawn(Object);
         }
+    }
+    [Rpc(RpcSources.All, RpcTargets.StateAuthority)]
+    public void RPC_TakeDamage(int amount)
+    {
+        TakeDamage(amount);
     }
 
     IEnumerator FlashRed()
@@ -189,6 +205,34 @@ public class PlayerController : NetworkBehaviour
         healthSlider.maxValue = maxHealth;
         healthSlider.value = currentHealth;
     }
+
+
+    [Rpc(RpcSources.StateAuthority, RpcTargets.InputAuthority)]
+    public void Rpc_TeleportTo(Vector3 position)
+    {
+        transform.position = position;
+
+        if (Camera.main != null)
+            Camera.main.transform.position = position + new Vector3(0, 0, -10);
+
+        Debug.Log("[PlayerController] Teleported by RPC");
+    }
+    [Networked, OnChangedRender(nameof(OnAttackTriggered))]
+    public NetworkBool IsAttacking { get; set; }
+
+    void OnFireInput()
+    {
+        if (Runner.IsForward && swordAttack != null)
+        {
+            swordAttack.Attack(!spriteRenderer.flipX); // !flip = droite
+        }
+    }
+    void OnAttackTriggered()
+    {
+        if (IsAttacking && swordAttack != null)
+            swordAttack.Attack(!spriteRenderer.flipX);
+    }
+
 
     public void UpdateManaBar()
     {
@@ -206,13 +250,4 @@ public class PlayerController : NetworkBehaviour
         currentEndurance = Mathf.Max(currentEndurance, 0);
         UpdateEnduranceBar();
     }
-
-    void SwordAttack()
-    {
-        if (swordAttack != null)
-        {
-            swordAttack.Attack(!spriteRenderer.flipX); // !flip = droite
-        }
-    }
-
 }

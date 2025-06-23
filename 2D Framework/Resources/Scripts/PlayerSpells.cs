@@ -46,7 +46,7 @@ public class PlayerSpells : MonoBehaviour
             Enemy enemy = col.GetComponent<Enemy>();
             if (enemy != null)
             {
-                enemy.TakeDamage(aoeDamage);
+               // enemy.TakeDamage(aoeDamage);
             }
         }
 

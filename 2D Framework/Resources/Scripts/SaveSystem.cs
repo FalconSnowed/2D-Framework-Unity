@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
+using Fusion;
 
 public class SaveSystem : MonoBehaviour
 {
     public void SaveGame(PlayerController player, InventoryGUI inventory, LevelSystem level)
     {
+        if (!player.Object || !player.HasInputAuthority) return;
+
         PlayerPrefs.SetFloat("PlayerX", player.transform.position.x);
         PlayerPrefs.SetFloat("PlayerY", player.transform.position.y);
 
@@ -44,6 +47,8 @@ public class SaveSystem : MonoBehaviour
 
     public void LoadGame(PlayerController player, InventoryGUI inventory, LevelSystem level, ItemDatabase itemDB)
     {
+        if (!player.Object || !player.HasInputAuthority) return;
+
         float x = PlayerPrefs.GetFloat("PlayerX", player.transform.position.x);
         float y = PlayerPrefs.GetFloat("PlayerY", player.transform.position.y);
         player.transform.position = new Vector2(x, y);
@@ -64,30 +69,28 @@ public class SaveSystem : MonoBehaviour
         for (int i = 0; i < inventory.items.Count; i++)
         {
             string id = PlayerPrefs.GetString($"Inventory_{i}", "");
-            // inventory.items[i] = itemDB.GetItemByID(id);
+            inventory.items[i] = !string.IsNullOrEmpty(id) ? itemDB.GetItemByID(id) : null;
         }
         for (int i = 0; i < inventory.equipmentSlots.Length; i++)
         {
             string id = PlayerPrefs.GetString($"Equip_{i}", "");
-            // inventory.equipmentSlots[i].itemData = itemDB.GetItemByID(id);
+            inventory.equipmentSlots[i].itemData = !string.IsNullOrEmpty(id) ? itemDB.GetItemByID(id) : null;
         }
         for (int i = 0; i < inventory.actionBarSlots.Length; i++)
         {
             string id = PlayerPrefs.GetString($"Action_{i}", "");
-            // inventory.actionBarSlots[i].item = itemDB.GetItemByID(id);
+            inventory.actionBarSlots[i].item = !string.IsNullOrEmpty(id) ? itemDB.GetItemByID(id) : null;
         }
-        // ✅ Réactivation explicite de la caméra
+
         string camPointName = PlayerPrefs.GetString("SavedCamPoint", "");
         if (!string.IsNullOrEmpty(camPointName))
         {
             Transform camPoint = GameObject.Find(camPointName)?.transform;
-
-            // ✅ Fallback automatique si caméra invalide
             if (camPoint == null)
             {
                 Debug.LogWarning("⚠ Caméra introuvable, fallback sur FixedCam_SpawnZone.");
                 camPoint = GameObject.Find("FixedCam_SpawnZone")?.transform;
-                PlayerPrefs.SetString("SavedCamPoint", "FixedCam_SpawnZone"); // on corrige aussi
+                PlayerPrefs.SetString("SavedCamPoint", "FixedCam_SpawnZone");
             }
 
             if (CameraFixedZoneController.Instance != null && camPoint != null)
@@ -96,9 +99,7 @@ public class SaveSystem : MonoBehaviour
                 if (CameraFixedZoneController.Instance.mainCamera != null)
                     CameraFixedZoneController.Instance.mainCamera.gameObject.SetActive(true);
             }
-
         }
-
 
         Debug.Log("✅ Partie chargée !");
     }

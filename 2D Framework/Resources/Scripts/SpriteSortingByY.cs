@@ -8,26 +8,35 @@ public class SpriteSortingByY : NetworkBehaviour
 
     [Networked] private bool IsFlipped { get; set; }
 
-    void Awake()
+    public override void Spawned()
     {
         spriteRenderer = GetComponent<SpriteRenderer>();
+
+        // Initialisation de l'état réseau à l'apparition (pour éviter les défauts au spawn)
+        if (HasStateAuthority)
+        {
+            IsFlipped = spriteRenderer.flipX;
+        }
     }
 
     public override void FixedUpdateNetwork()
     {
-        // 🔁 Si c'est l'autorité locale, mettre à jour la valeur réseau
-        if (HasInputAuthority)
+        // ✅ MAJ de l'état flipX uniquement par celui qui contrôle l'objet
+        if (HasInputAuthority || HasStateAuthority)
         {
             IsFlipped = spriteRenderer.flipX;
         }
 
-        // 🔄 Appliquer à tous la bonne orientation
+        // ✅ Appliquer la direction synchronisée sur tous les clients
         spriteRenderer.flipX = IsFlipped;
     }
 
     void LateUpdate()
     {
-        // 🧠 Système de tri selon Y pour isométrique
-        spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 100);
+        // 🧠 Tri Y dynamique pour style isométrique
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 100);
+        }
     }
 }
