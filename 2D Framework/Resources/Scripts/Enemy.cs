@@ -44,7 +44,6 @@ public class Enemy : NetworkBehaviour, IDamageable
     private Animator animator;
     private SpriteRenderer spriteRenderer;
 
-    private bool isAttacking = false;
     private Vector2 moveDirection;
     private float attackTimer = 0f;
     private float idleCooldown = 0f;
@@ -219,6 +218,7 @@ public class Enemy : NetworkBehaviour, IDamageable
         return (targetPos - (Vector2)transform.position).normalized;
     }
 
+    [System.Obsolete]
     public void TakeDamage(int amount)
     {
         if (IsDead) return;
@@ -228,7 +228,7 @@ public class Enemy : NetworkBehaviour, IDamageable
             Die();
     }
 
-
+    [System.Obsolete]
     private void Die()
     {
         if (IsDead) return;
@@ -249,6 +249,8 @@ public class Enemy : NetworkBehaviour, IDamageable
         StartCoroutine(DelayedDespawn(3f)); // ← Laisse le temps au joueur de voir
     }
     private EnemyDeathEvent deathEvent;
+    private bool isAttacking;
+
     private IEnumerator DelayedDespawn(float delay)
     {
         yield return new WaitForSeconds(delay);

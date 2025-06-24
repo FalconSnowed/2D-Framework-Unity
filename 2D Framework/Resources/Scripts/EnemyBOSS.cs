@@ -69,6 +69,7 @@ public class EnemyBOSS : NetworkBehaviour, IDamageable
         }
     }
 
+    [System.Obsolete]
     private void OnFlipChanged()
     {
         spriteRenderer.flipX = IsFlipped;
@@ -230,6 +231,7 @@ public class EnemyBOSS : NetworkBehaviour, IDamageable
             Die();
     }
 
+    [System.Obsolete]
     private void Die()
     {
         if (IsDead) return;
@@ -261,6 +263,7 @@ public class EnemyBOSS : NetworkBehaviour, IDamageable
             healthSlider.value = Mathf.Clamp01(Health / 50f);
     }
 
+    [System.Obsolete]
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

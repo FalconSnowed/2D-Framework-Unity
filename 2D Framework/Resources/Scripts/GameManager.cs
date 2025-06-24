@@ -5,18 +5,18 @@ public class GameManager : MonoBehaviour
 {
     public static GameManager Instance;
     public bool IsInventoryOpen = false;
+    private object itemDB;
 
+    [System.Obsolete]
     void Start()
     {
         PlayerController player = GameObject.FindGameObjectWithTag("Player")?.GetComponent<PlayerController>();
         InventoryGUI inventory = FindObjectOfType<InventoryGUI>();
         LevelSystem level = FindObjectOfType<LevelSystem>();
-        ItemDatabase itemDB = FindObjectOfType<ItemDatabase>();
-        SaveSystem saveSystem = FindObjectOfType<SaveSystem>();
 
-        if (player != null && inventory != null && level != null && itemDB != null && saveSystem != null)
+        if (player != null && inventory != null && level != null && itemDB != null && FindObjectOfType<SaveSystem>() != null)
         {
-            saveSystem.LoadGame(player, inventory, level, itemDB);
+            FindObjectOfType<SaveSystem>().LoadGame(player, inventory, level, itemDB);
         }
         else
         {

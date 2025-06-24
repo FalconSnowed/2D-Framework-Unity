@@ -34,6 +34,7 @@ public class EnemyController2D : NetworkBehaviour
         currentHealth = maxHealth;
     }
 
+    [System.Obsolete]
     public override void FixedUpdateNetwork()
     {
         if (!HasStateAuthority) return;
@@ -76,6 +77,7 @@ public class EnemyController2D : NetworkBehaviour
         }
     }
 
+    [System.Obsolete]
     private void HandleAttack()
     {
         if (targetPlayer == null) return;
@@ -92,6 +94,7 @@ public class EnemyController2D : NetworkBehaviour
         }
     }
 
+    [System.Obsolete]
     public void TakeDamage(int amount)
     {
         currentHealth -= amount;
@@ -109,6 +112,7 @@ public class EnemyController2D : NetworkBehaviour
         }
     }
 
+    [System.Obsolete]
     private void ApplyKnockback()
     {
         if (targetPlayer == null) return;
@@ -117,6 +121,7 @@ public class EnemyController2D : NetworkBehaviour
         rb.AddForce(knockDir * knockbackForce, ForceMode2D.Impulse);
     }
 
+    [System.Obsolete]
     private void Die()
     {
         Debug.Log($"[Enemy] {gameObject.name} est mort.");
@@ -141,6 +146,7 @@ public class EnemyController2D : NetworkBehaviour
             spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 100);
     }
 
+    [System.Obsolete]
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

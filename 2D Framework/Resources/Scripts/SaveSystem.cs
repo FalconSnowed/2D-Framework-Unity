@@ -1,6 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections.Generic;
 using Fusion;
+using System;
 
 public class SaveSystem : MonoBehaviour
 {
@@ -102,5 +103,10 @@ public class SaveSystem : MonoBehaviour
         }
 
         Debug.Log("✅ Partie chargée !");
+    }
+
+    internal void LoadGame(PlayerController player, InventoryGUI inventory, LevelSystem level, object itemDB)
+    {
+        throw new NotImplementedException();
     }
 }

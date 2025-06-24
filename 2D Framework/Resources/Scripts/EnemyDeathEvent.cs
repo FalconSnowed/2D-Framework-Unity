@@ -28,6 +28,7 @@ public class EnemyDeathEvent : MonoBehaviour
 
     private bool isDead = false;
 
+    [System.Obsolete]
     public void TriggerDeath()
     {
         if (isDead) return;
@@ -35,6 +36,7 @@ public class EnemyDeathEvent : MonoBehaviour
         StartCoroutine(DeathSequence());
     }
 
+    [System.Obsolete]
     private IEnumerator DeathSequence()
     {
         // 1. Animation

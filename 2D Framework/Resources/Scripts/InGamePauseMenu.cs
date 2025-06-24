@@ -21,6 +21,7 @@ public class InGamePauseMenu : MonoBehaviour
     private ItemDatabase itemDB;
     private SaveSystem saveSystem;
 
+    [System.Obsolete]
     private void Start()
     {
         float x = (Screen.width - menuSize.x) / 2f;

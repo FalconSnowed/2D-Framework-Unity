@@ -17,7 +17,7 @@ public class PlayerNetworkController2D : NetworkBehaviour
     [Networked] private int currentHealth { get; set; }
     [Header("Attack")]
     public float attackCooldown = 0.8f;
-    private float lastAttackTime = -999f;
+
 
     private Rigidbody2D rb;
     private Vector2 inputDirection;
@@ -50,6 +50,7 @@ public class PlayerNetworkController2D : NetworkBehaviour
         spriteRenderer.color = original;
     }
 
+    [System.Obsolete]
     public void TakeDamage(int amount)
     {
         if (!Object.HasInputAuthority) return; // Optionnel : éviter double feedback
@@ -154,6 +155,7 @@ public class PlayerNetworkController2D : NetworkBehaviour
         }
     }
 
+    [System.Obsolete]
     private void OnDrawGizmosSelected()
     {
         Gizmos.color = Color.red;

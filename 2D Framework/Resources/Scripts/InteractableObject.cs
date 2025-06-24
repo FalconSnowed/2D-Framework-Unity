@@ -3,7 +3,7 @@ using Fusion;
 
 public class InteractableObject : NetworkBehaviour
 {
-    private bool isPlayerInRange = false;
+    private bool isPlayerInRange;
     private bool showGUI = false;
     private NetworkObject playerInTrigger;
 

@@ -20,6 +20,8 @@ public class PlayerController : NetworkBehaviour
     [Header("Refs")]
     private float lastHitTime = -999f;
     public float hitCooldown = 1.0f;
+    [Networked, OnChangedRender(nameof(OnFlipChanged))]
+    public NetworkBool IsFlipped { get; set; }
 
     public int attack = 12;
     public int defense = 5;
@@ -106,18 +108,31 @@ public class PlayerController : NetworkBehaviour
 
         animator.SetBool("isMoving", movementInput != Vector2.zero);
         spriteRenderer.flipX = movementInput.x < 0;
+        IsFlipped = spriteRenderer.flipX; // 🔁 synchronisation
 
-        if (GetInput(out NetworkInputData data))
+
+        if (HasInputAuthority && Input.GetMouseButtonDown(0)) // 0 = clic gauche
         {
-            if (data.attackPressed && Runner.IsForward)
+            if (swordAttack != null)
             {
-                IsAttacking = true; // synchronisé
+                swordAttack.Attack(!spriteRenderer.flipX);
             }
         }
 
         RegenerateEndurance();
     }
-
+    void OnFlipChanged()
+    {
+        spriteRenderer.flipX = IsFlipped;
+    }
+    void LateUpdate()
+    {
+        // 🧠 Tri Y dynamique pour style isométrique
+        if (spriteRenderer != null)
+        {
+            spriteRenderer.sortingOrder = Mathf.RoundToInt(-transform.position.y * 100);
+        }
+    }
     IEnumerator DashFunction()
     {
         UseEndurance(dashEnduranceCost);

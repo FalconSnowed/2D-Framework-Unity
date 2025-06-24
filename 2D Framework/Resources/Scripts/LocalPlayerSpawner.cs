@@ -13,6 +13,7 @@ public class LocalPlayerSpawner : MonoBehaviour
     private NetworkRunner runner;
     private Coroutine spawnCoroutine;
 
+    [System.Obsolete]
     void Start()
     {
         runner = FindObjectOfType<NetworkRunner>();

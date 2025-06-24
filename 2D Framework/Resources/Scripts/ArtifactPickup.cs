@@ -5,6 +5,7 @@ public class ArtifactPickup : MonoBehaviour
     public string artifactId = "Artifact_01"; // Unique par objet
     public QuestData linkedQuest; // Optionnel : associer à une quête
 
+    [System.Obsolete]
     private void OnTriggerEnter2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;

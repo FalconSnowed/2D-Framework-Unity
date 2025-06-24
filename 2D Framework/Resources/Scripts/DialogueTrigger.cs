@@ -6,6 +6,7 @@ public class DialogueTrigger : MonoBehaviour
     private bool playerInRange = false;
     private DialogueUI dialogueUI;
 
+    [System.Obsolete]
     void Start()
     {
         dialogueUI = FindObjectOfType<DialogueUI>();

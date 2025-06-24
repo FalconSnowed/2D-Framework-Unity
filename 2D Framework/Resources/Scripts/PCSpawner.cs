@@ -10,11 +10,13 @@ public class PCSpawner : MonoBehaviour
     private NetworkRunner runner;
     private NetworkObject spawnedNPC;
 
+    [System.Obsolete]
     private void Start()
     {
         StartCoroutine(InitializeSpawner());
     }
 
+    [System.Obsolete]
     private IEnumerator InitializeSpawner()
     {
         while (runner == null)
@@ -49,6 +51,7 @@ public class PCSpawner : MonoBehaviour
         }
     }
 
+    [System.Obsolete]
     private void VerifyAndSpawnNPC()
     {
         // Rechercher tous les objets réseau et vérifier si un NPC existe déjà
@@ -68,6 +71,7 @@ public class PCSpawner : MonoBehaviour
         SpawnNPC();
     }
 
+    [System.Obsolete]
     private void SpawnNPC()
     {
         if (runner == null)

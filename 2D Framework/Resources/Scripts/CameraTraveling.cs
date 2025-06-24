@@ -16,7 +16,7 @@ public class CameraTraveling : MonoBehaviour
 
     private Camera cam;
     private int currentIndex = 0;
-    private bool isTraveling = false;
+    private bool isTraveling;
 
     private void Start()
     {

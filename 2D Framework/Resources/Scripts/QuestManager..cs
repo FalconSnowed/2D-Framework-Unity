@@ -23,6 +23,8 @@ public class QuestManager : MonoBehaviour
             Debug.Log("Nouvelle quête ajoutée : " + newQuest.questTitle);
         }
     }
+
+    [System.Obsolete]
     public void CollectArtifact(string artifactId)
     {
         if (!collectedArtifacts.Contains(artifactId))
@@ -37,6 +39,7 @@ public class QuestManager : MonoBehaviour
         }
     }
 
+    [System.Obsolete]
     private void UnlockNextArea()
     {
         Debug.Log("✨ Tous les artéfacts ont été collectés ! Une nouvelle zone est accessible.");
@@ -78,6 +81,7 @@ public class QuestManager : MonoBehaviour
     }
     private QuestRewardPopup rewardPopup;
 
+    [System.Obsolete]
     private void Start()
     {
         rewardPopup = FindObjectOfType<QuestRewardPopup>();
